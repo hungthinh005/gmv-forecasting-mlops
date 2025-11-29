@@ -1,0 +1,104 @@
+# Model-specific configurations for different cities
+
+models:
+  Ho_Chi_Minh:
+    sarimax:
+      # Auto-selected best parameters (can be overridden)
+      order: [1, 0, 0]
+      seasonal_order: [0, 0, 0, 12]
+      enforce_stationarity: true
+      enforce_invertibility: true
+      
+    prophet:
+      growth: "linear"
+      changepoint_prior_scale: 0.05
+      seasonality_prior_scale: 10.0
+      holidays_prior_scale: 10.0
+      
+    hybrid:
+      # Optimized weights
+      sarimax_weight: 0.4332
+      prophet_weight: 0.5668
+      
+    features:
+      # Feature importance or selection
+      selected_features: ["x1", "x2", "x3", "x4", "x5", "x6", "x7"]
+      
+  Hanoi:
+    sarimax:
+      order: [1, 0, 0]
+      seasonal_order: [0, 0, 0, 12]
+      enforce_stationarity: true
+      enforce_invertibility: true
+      
+    prophet:
+      growth: "linear"
+      changepoint_prior_scale: 0.05
+      seasonality_prior_scale: 10.0
+      holidays_prior_scale: 10.0
+      
+    hybrid:
+      sarimax_weight: 0.3863
+      prophet_weight: 0.6137
+      
+    features:
+      selected_features: ["x1", "x2", "x3", "x4", "x5", "x6", "x7"]
+
+# Feature engineering configuration
+feature_engineering:
+  create_lag_features: false
+  lag_periods: [1, 2, 4]
+  
+  create_rolling_features: false
+  rolling_windows: [4, 12, 26]
+  rolling_functions: ["mean", "std", "min", "max"]
+  
+  create_date_features: true
+  date_features:
+    - "week_of_year"
+    - "month"
+    - "quarter"
+    - "is_month_start"
+    - "is_month_end"
+    - "is_quarter_start"
+    - "is_quarter_end"
+
+# Preprocessing configuration
+preprocessing:
+  handle_missing:
+    method: "forward_fill"  # Options: forward_fill, backward_fill, interpolate, drop, zero
+    
+  scaling:
+    method: "standard"  # Options: standard, minmax, robust, none
+    apply_to_target: false
+    
+  outlier_detection:
+    enabled: true
+    method: "iqr"  # Options: iqr, zscore, isolation_forest
+    threshold: 1.5
+
+# Hyperparameter tuning (using Optuna)
+hyperparameter_tuning:
+  enabled: false
+  
+  optuna:
+    n_trials: 50
+    timeout: 3600  # seconds
+    direction: "minimize"
+    sampler: "TPE"  # Tree-structured Parzen Estimator
+    pruner: "MedianPruner"
+    
+  search_space:
+    sarimax:
+      p: [0, 5]
+      d: [0, 2]
+      q: [0, 5]
+      P: [0, 2]
+      D: [0, 1]
+      Q: [0, 2]
+      
+    prophet:
+      changepoint_prior_scale: [0.001, 0.5]
+      seasonality_prior_scale: [0.01, 10.0]
+      holidays_prior_scale: [0.01, 10.0]
+

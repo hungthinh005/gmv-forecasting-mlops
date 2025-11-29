@@ -1,0 +1,70 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# Virtual Environment
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Jupyter
+.ipynb_checkpoints
+*.ipynb
+
+# Data (keep structure, ignore files)
+data/raw/*
+!data/raw/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+data/predictions/*
+!data/predictions/.gitkeep
+
+# Models (keep structure, ignore trained models)
+models/*
+!models/.gitkeep
+
+# Outputs
+outputs/*
+!outputs/.gitkeep
+logs/*
+!logs/.gitkeep
+
+# MLflow
+mlruns/
+mlartifacts/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# OS
+.DS_Store
+Thumbs.db
+*.log
+
+# Temporary
+*.tmp
+*.bak
+test_*.py
+*_test.py
+setup_*.ps1
+CHECK_*.py
+
+# Temporary documentation (keep only README.md)
+*_SETUP*.md
+*_SOLUTION*.md
+*_INSTRUCTIONS*.md
+QUICK_START*.md
+INSTALL_*.md

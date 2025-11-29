@@ -1,0 +1,215 @@
+# Main Configuration for GMV Forecasting ML Pipeline
+
+project:
+  name: "gmv_forecasting_mlops"
+  version: "1.0.0"
+  description: "Production GMV forecasting with weighted hybrid model"
+
+data:
+  raw_data_path: "data/raw/data.csv"
+  processed_data_path: "data/processed/"
+  predictions_output_path: "data/predictions/"
+  
+  # Date columns
+  date_column: "week_date"
+  target_column: "gmv"
+  city_column: "city_name"
+  
+  # Cities to process
+  cities:
+    - "Ho Chi Minh"
+    - "Hanoi"
+  
+  # Train/test split
+  train_start_date: "2023-03-06"
+  test_split_date: "2025-04-01"
+  
+  # Feature columns (exogenous variables)
+  exogenous_features:
+    - "x1"
+    - "x2"
+    - "x3"
+    - "x4"
+    - "x5"
+    - "x6"
+    - "x7"
+    - "x8"
+    - "x9"
+    - "x10"
+    - "x11"
+    - "x12"
+    - "x13"
+    - "x14"
+    - "x15"
+    - "x16"
+    - "x17"
+    - "x18"
+
+training:
+  # SARIMAX parameters
+  sarimax:
+    seasonal_periods: [12, 26, 52]  # Weekly seasonality candidates
+    max_p: 5
+    max_q: 5
+    max_P: 5
+    max_Q: 5
+    information_criterion: "aicc"
+    stepwise: true
+    suppress_warnings: true
+    
+  # Prophet parameters (matching working notebook)
+  prophet:
+    seasonality_mode: "multiplicative"
+    interval_width: 0.95
+    country_holidays: "VN"
+    custom_seasonalities:
+      - name: "monthly"
+        period: 30.5
+        fourier_order: 5
+      - name: "quarterly"
+        period: 91.25
+        fourier_order: 5
+      - name: "yearly"
+        period: 365.25
+        fourier_order: 5
+    regressor_mode: "multiplicative"
+  
+  # Hybrid model optimization
+  hybrid:
+    optimization_method: "SLSQP"
+    initial_weights: [0.5, 0.5]
+    bounds: [[0, 1], [0, 1]]
+    
+  # General training settings
+  random_seed: 42
+  validation_size: 0.2
+  cross_validation:
+    enabled: false
+    n_splits: 5
+
+models:
+  output_dir: "models/"
+  registry_dir: "models/registry/"
+  
+  # Model versioning
+  versioning:
+    enabled: true
+    tag_format: "v{version}_{timestamp}"
+    
+  # Model selection criteria
+  selection_metric: "mape"  # Options: mape, mae, rmse
+  
+evaluation:
+  metrics:
+    - "mape"
+    - "mae"
+    - "rmse"
+    - "r2"
+  
+  # Forecast horizon for future predictions
+  forecast_horizon: 4  # weeks
+  
+  # Confidence intervals
+  confidence_level: 0.95
+  
+  # Visualization
+  create_plots: true
+  plot_output_dir: "outputs/plots/"
+
+mlflow:
+  tracking_uri: "mlruns"
+  experiment_name: "gmv_forecasting"
+  
+  # Tags to track
+  default_tags:
+    project: "gmv_forecasting"
+    framework: "hybrid_sarimax_prophet"
+  
+  # Auto-log settings
+  autolog:
+    disable: false
+    log_models: true
+    log_datasets: true
+
+api:
+  host: "0.0.0.0"
+  port: 8000
+  workers: 4
+  reload: false
+  log_level: "info"
+  
+  # API limits
+  rate_limit:
+    enabled: true
+    requests_per_minute: 60
+  
+  # CORS settings
+  cors:
+    enabled: true
+    allow_origins: ["*"]
+    allow_methods: ["*"]
+    allow_headers: ["*"]
+  
+  # Model serving
+  model_serving:
+    default_model_version: "latest"
+    cache_predictions: true
+    cache_ttl: 3600  # seconds
+
+monitoring:
+  enabled: true
+  
+  # Metrics collection
+  metrics:
+    collect_system_metrics: true
+    collect_model_metrics: true
+    collection_interval: 60  # seconds
+  
+  # Alerting
+  alerts:
+    enabled: false
+    email_recipients: []
+    slack_webhook: null
+    
+  # Thresholds
+  thresholds:
+    mape_threshold: 0.15  # 15%
+    prediction_latency_ms: 1000
+    data_drift_threshold: 0.05
+
+logging:
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  
+  # File logging
+  file:
+    enabled: true
+    path: "logs/app.log"
+    max_size_mb: 100
+    backup_count: 5
+  
+  # Console logging
+  console:
+    enabled: true
+    colorize: true
+
+deployment:
+  environment: "development"  # development, staging, production
+  
+  # Docker settings
+  docker:
+    image_name: "gmv-forecasting-api"
+    tag: "latest"
+    
+  # Resource limits
+  resources:
+    cpu_limit: "2"
+    memory_limit: "4G"
+    
+  # Health check
+  health_check:
+    enabled: true
+    interval: 30
+    timeout: 10
+    retries: 3
+

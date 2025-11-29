@@ -1,0 +1,125 @@
+version: '3.8'
+
+services:
+  # GMV Forecasting API
+  api:
+    build:
+      context: ..
+      dockerfile: deployment/Dockerfile
+    container_name: gmv-forecasting-api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../data:/app/data
+      - ../models:/app/models
+      - ../logs:/app/logs
+      - ../mlruns:/app/mlruns
+      - ../outputs:/app/outputs
+    environment:
+      - PYTHONUNBUFFERED=1
+      - LOG_LEVEL=INFO
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - gmv-network
+
+  # MLflow Tracking Server
+  mlflow:
+    image: python:3.10-slim
+    container_name: gmv-mlflow-server
+    ports:
+      - "5001:5000"
+    volumes:
+      - ../mlruns:/mlruns
+    working_dir: /
+    command:
+      - /bin/sh
+      - -c
+      - |
+        pip install mlflow==2.9.2 &&
+        mlflow server \
+          --backend-store-uri /mlruns \
+          --default-artifact-root /mlruns \
+          --host 0.0.0.0 \
+          --port 5000
+    restart: unless-stopped
+    networks:
+      - gmv-network
+
+  # PostgreSQL (Optional - for storing predictions/logs)
+  postgres:
+    image: postgres:15-alpine
+    container_name: gmv-postgres
+    environment:
+      POSTGRES_USER: gmv_user
+      POSTGRES_PASSWORD: gmv_password
+      POSTGRES_DB: gmv_forecasting
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - gmv-network
+
+  # Redis (Optional - for caching predictions)
+  redis:
+    image: redis:7-alpine
+    container_name: gmv-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    networks:
+      - gmv-network
+
+  # Prometheus (Optional - for monitoring)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: gmv-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    restart: unless-stopped
+    networks:
+      - gmv-network
+
+  # Grafana (Optional - for visualization)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: gmv-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+    restart: unless-stopped
+    networks:
+      - gmv-network
+    depends_on:
+      - prometheus
+
+networks:
+  gmv-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
+  prometheus_data:
+  grafana_data:
+

@@ -1,0 +1,29 @@
+# Simplified Docker Compose for Training Only
+# Use this for quick model training without starting all services
+
+version: '3.8'
+
+services:
+  # Training Service
+  train:
+    build:
+      context: ..
+      dockerfile: deployment/Dockerfile
+    container_name: gmv-training
+    volumes:
+      - ../data:/app/data
+      - ../models:/app/models
+      - ../logs:/app/logs
+      - ../mlruns:/app/mlruns
+      - ../config:/app/config
+    environment:
+      - PYTHONUNBUFFERED=1
+      - LOG_LEVEL=INFO
+    working_dir: /app
+    command: python src/models/train.py --config config/config.yaml
+
+networks:
+  default:
+    driver: bridge
+
+
