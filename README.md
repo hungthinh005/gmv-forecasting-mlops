@@ -228,12 +228,29 @@ gmv_forecasting_mlops/
 docker compose -f deployment/docker-compose.yml build
 ```
 
-#### 2. Train Models
+#### 2. Prepare Data
+
+Place your data file in `data/raw/data.csv`:
+
+**Required format**:
+```csv
+week_date,city_name,gmv,x1,x2,x3,...,x18
+2020-01-01,Ho Chi Minh,1000000,0.5,0.3,0.8,...,0.6
+2020-01-08,Hanoi,800000,0.6,0.4,0.7,...,0.5
+```
+
+**Columns**:
+- `week_date`: Date (YYYY-MM-DD format)
+- `city_name`: City identifier
+- `gmv`: Target variable (Gross Merchandise Value)
+- `x1` to `x18`: Feature columns
+
+#### 3. Train Models
 ```bash
 docker compose -f deployment/docker-compose.train.yml up
 ```
 
-**Output**:
+**Output Sample**:
 ```
 INFO - Training SARIMAX component
 INFO - Best SARIMAX: m=12, AIC=2425.78
@@ -244,7 +261,7 @@ INFO - Weights: SARIMAX=0.24, Prophet=0.76
 INFO - Hybrid MAPE: 1.57%
 ```
 
-#### 3. Start Services
+#### 4. Start Services
 ```bash
 docker compose -f deployment/docker-compose.yml up -d
 ```
@@ -487,3 +504,71 @@ http://localhost:3000
 - Performance tracking
 
 ---
+
+## Tech Stack
+
+### Data Science & ML
+- **Python**: 3.10+
+- **Time Series**: statsmodels (SARIMAX), pmdarima (Auto-ARIMA)
+- **ML**: Facebook Prophet, scikit-learn
+- **Data Processing**: pandas, numpy
+- **Optimization**: scipy
+
+### MLOps & Infrastructure
+- **Experiment Tracking**: MLflow
+- **API Framework**: FastAPI, Pydantic, Uvicorn
+- **Containerization**: Docker, Docker Compose
+- **Monitoring**: Prometheus, Grafana
+- **Database**: PostgreSQL (optional)
+- **Caching**: Redis (optional)
+- **Testing**: pytest, pytest-cov
+- **CI/CD**: GitHub Actions
+
+---
+
+## Repository & Version Control
+
+### What's Included in Git
+✅ Source code (`src/`)
+✅ Configuration files (`config/`)
+✅ Tests (`tests/`)
+✅ Docker setup (`deployment/`)
+✅ Documentation (README, LICENSE)
+✅ Dependencies (`requirements.txt`)
+✅ CI/CD (`.github/workflows/`)
+
+### What's Excluded (.gitignore)
+❌ Data files (`data/raw/`, `data/processed/`)
+❌ Trained models (`models/`)
+❌ MLflow experiments (`mlruns/`)
+❌ Virtual environments (`venv/`)
+❌ Logs and outputs (`logs/`, `outputs/`)
+❌ Python cache (`__pycache__/`, `*.pyc`)
+
+**Why**: Large files, generated files, and sensitive data should not be in version control.
+
+### For Users Cloning This Repo
+
+After cloning, you need to:
+1. Add your own data to `data/raw/data.csv`
+2. Build Docker image (first time: 10-15 min)
+3. Train models with your data (5-10 min)
+4. Start services
+
+---
+
+## License
+
+MIT License - See [LICENSE](LICENSE) file for details.
+
+---
+
+## Author
+
+**Thinh Nguyen**
+- GitHub: [@hungthinh005](https://github.com/hungthinh005)
+- Project: [GMV Forecasting MLOps](https://github.com/hungthinh005/gmv-forecasting-mlops)
+
+---
+
+*This project demonstrates a complete ML lifecycle from data processing to production deployment with MLOps best practices.*
